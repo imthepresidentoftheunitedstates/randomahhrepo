@@ -279,15 +279,17 @@ function resize() {
 function buildStars() {
   stars = [];
   const count = Math.min(Math.floor((W * H) / 3200), 320);
+  const isMobile = W < 600;
   for (let i = 0; i < count; i++) {
     const hasNote = i < NOTES.length;
     stars.push({
-      x:      rand(40, W - 40),
-      y:      rand(40, H - 40),
-      r:      hasNote ? rand(2.6, 4.0) : rand(0.4, 1.6),
+      x:      rand(50, W - 50),
+      y:      rand(50, H - 50),
+      r:      hasNote ? rand(isMobile ? 7 : 8, isMobile ? 11 : 13) : rand(0.4, 1.6),
       alpha:  rand(0.35, 1),
       speed:  rand(0.003, 0.009),
       phase:  rand(0, Math.PI * 2),
+      rot:    rand(0, Math.PI / 4),
       note:   hasNote ? NOTES[i] : null,
       read:   false,
       hovered: false,
@@ -295,6 +297,20 @@ function buildStars() {
       glowR:  0,
     });
   }
+}
+
+/* draw a 4-pointed star shape centred at cx,cy with outer radius R */
+function star4(cx, cy, R, inner) {
+  const pts = 4;
+  ctx.beginPath();
+  for (let i = 0; i < pts * 2; i++) {
+    const angle = (i * Math.PI) / pts - Math.PI / 2;
+    const r = i % 2 === 0 ? R : inner;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
 }
 
 /* ── draw ── */
@@ -327,58 +343,74 @@ function draw() {
     s.glow  += (targetGlow - s.glow)  * 0.1;
     s.glowR += (targetGlow - s.glowR) * 0.07;
 
-    ctx.save();
+    if (s.note) {
+      /* ── clickable star: 4-pointed shape ── */
+      const R  = s.r + s.glowR * 2.2;      // outer tip radius
+      const ri = R * 0.28;                  // inner concave radius
+      const lavender = s.read
+        ? [249, 140 + s.glow*28, 180 + s.glow*20]
+        : [196 + s.glow*18, 181 + s.glow*18, 253];
+      const colStr = `rgba(${lavender[0]},${lavender[1]},${lavender[2]},1)`;
+      const glowCol = s.read
+        ? `rgba(249,168,212,${0.55 + s.glow*0.35})`
+        : `rgba(196,181,253,${0.6 + s.glow*0.35})`;
 
-    if (s.note && s.glow > 0.02) {
-      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 10);
-      grd.addColorStop(0, `rgba(196,181,253,${0.28 * s.glow})`);
-      grd.addColorStop(0.4, `rgba(249,168,212,${0.1 * s.glow})`);
-      grd.addColorStop(1, 'transparent');
-      ctx.fillStyle = grd;
+      /* outer glow halo */
+      if (s.glow > 0.01 || true) {
+        const haloR = R * (7 + s.glow * 5);
+        const grd = ctx.createRadialGradient(s.x, s.y, R * 0.5, s.x, s.y, haloR);
+        grd.addColorStop(0, s.read ? `rgba(249,168,212,${0.22 + s.glow*0.18})` : `rgba(196,181,253,${0.2 + s.glow*0.2})`);
+        grd.addColorStop(1, 'transparent');
+        ctx.fillStyle = grd;
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, haloR, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      /* subtle ring (always visible so user knows it's clickable) */
+      ctx.globalAlpha = a * (0.22 + s.glow * 0.15);
+      ctx.strokeStyle = colStr;
+      ctx.lineWidth = 0.8;
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r * 10, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    /* shadow glow */
-    if (s.note) {
-      ctx.shadowBlur = 5 + s.glow * 14;
-      ctx.shadowColor = s.read
-        ? `rgba(249,168,212,${0.4 + s.glow*0.3})`
-        : `rgba(196,181,253,${0.5 + s.glow*0.4})`;
-    }
-
-    ctx.globalAlpha = a;
-
-    /* body */
-    if (s.note) {
-      const col = s.read
-        ? `rgba(249,${140 + s.glow*28},${180 + s.glow*20},1)`
-        : `rgba(${196 + s.glow*18},${181 + s.glow*18},253,1)`;
-      ctx.fillStyle = col;
-    } else {
-      ctx.fillStyle = 'rgba(220,216,255,0.85)';
-    }
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r + s.glowR * 1.8, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-
-    /* 4-point sparkle arms on note stars */
-    if (s.note) {
-      ctx.save();
-      const armA = a * (0.35 + s.glow * 0.45);
-      ctx.globalAlpha = armA;
-      ctx.strokeStyle = s.read ? 'rgba(249,168,212,0.8)' : 'rgba(196,181,253,0.8)';
-      ctx.lineWidth = 0.6;
-      const arm = s.r * (1.8 + s.glowR * 2.5);
-      const armShort = arm * 0.55;
-      ctx.beginPath();
-      ctx.moveTo(s.x - arm, s.y);      ctx.lineTo(s.x + arm, s.y);
-      ctx.moveTo(s.x, s.y - arm);      ctx.lineTo(s.x, s.y + arm);
-      ctx.moveTo(s.x - armShort, s.y - armShort); ctx.lineTo(s.x + armShort, s.y + armShort);
-      ctx.moveTo(s.x + armShort, s.y - armShort); ctx.lineTo(s.x - armShort, s.y + armShort);
+      ctx.arc(s.x, s.y, R * 2.4, 0, Math.PI*2);
       ctx.stroke();
+
+      /* shadow */
+      ctx.shadowBlur  = 8 + s.glow * 18;
+      ctx.shadowColor = glowCol;
+      ctx.globalAlpha = a;
+
+      /* filled star shape */
+      ctx.fillStyle = colStr;
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.rot);
+      star4(0, 0, R, ri);
+      ctx.fill();
+      ctx.restore();
+
+      /* thin stroke outline for crispness */
+      ctx.save();
+      ctx.globalAlpha = a * 0.55;
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth   = 0.7;
+      ctx.shadowBlur  = 0;
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.rot);
+      star4(0, 0, R, ri);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.restore();
+
+    } else {
+      /* ── background dot star ── */
+      ctx.globalAlpha = a;
+      ctx.fillStyle   = 'rgba(220,216,255,0.85)';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
       ctx.restore();
     }
   }
@@ -400,7 +432,7 @@ let firstOpen  = false;
 function hitTest(px, py) {
   for (const s of stars) {
     if (!s.note) continue;
-    if (Math.hypot(px - s.x, py - s.y) < Math.max(s.r + 10, 16)) return s;
+    if (Math.hypot(px - s.x, py - s.y) < Math.max(s.r + 14, 22)) return s;
   }
   return null;
 }
@@ -456,7 +488,7 @@ canvas.addEventListener('mousemove', e => {
   for (const s of stars) {
     s.hovered = false;
     if (!s.note) continue;
-    if (Math.hypot(x - s.x, y - s.y) < Math.max(s.r + 10, 16)) found = s;
+    if (Math.hypot(x - s.x, y - s.y) < Math.max(s.r + 14, 22)) found = s;
   }
   if (found) { found.hovered = true; canvas.style.cursor = 'pointer'; }
   else        { canvas.style.cursor = 'default'; }
