@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>A little universe — just for Haya</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --deep:     #04040e;
+  --lavender: #c4b5fd;
+  --blush:    #f9a8d4;
+  --star:     #edeaff;
+  --dim:      #55546e;
+  --diml:     #7c7a9a;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--deep);
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#sky { position: fixed; inset: 0; z-index: 0; }
+
+/* ── hero ── */
+#title {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 1s ease;
+  user-select: none;
+  width: 90vw;
+}
+.eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(9px, 2vw, 11px);
+  letter-spacing: 0.3em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+#title h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(42px, 9vw, 88px);
+  color: var(--star);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+#title h1 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--lavender) 0%, var(--blush) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hint {
+  font-size: clamp(10px, 2vw, 12px);
+  color: var(--dim);
+  margin-top: 24px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  animation: blink 3s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 0.3; }
+  50%      { opacity: 0.85; }
+}
+
+/* ── counter ── */
+#counter {
+  position: fixed;
+  top: 22px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s;
+  text-align: center;
+}
+#counter.show { opacity: 1; }
+#counter span {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+#counter strong {
+  color: var(--lavender);
+  font-weight: 500;
+}
+
+/* ── popup ── */
+#popup {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(.22,.68,0,1.2), transform 0.3s cubic-bezier(.22,.68,0,1.2);
+  transform: scale(0.93) translateY(8px);
+  width: min(280px, 86vw);
+}
+#popup.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+/* mobile: always centred at bottom */
+@media (max-width: 600px) {
+  #popup {
+    left: 50% !important;
+    top: auto !important;
+    bottom: max(28px, env(safe-area-inset-bottom, 20px)) !important;
+    transform: translateX(-50%) scale(0.93) translateY(12px) !important;
+    width: min(320px, 90vw);
+  }
+  #popup.visible {
+    transform: translateX(-50%) scale(1) translateY(0) !important;
+  }
+}
+
+#popup-inner {
+  background: rgba(8, 6, 24, 0.88);
+  border: 0.5px solid rgba(196,181,253,0.25);
+  border-radius: 20px;
+  padding: 26px 28px 22px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+#popup-inner::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196,181,253,0.4), transparent);
+}
+.popup-symbol {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+.popup-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(17px, 4vw, 20px);
+  font-weight: 300;
+  color: var(--star);
+  line-height: 1.6;
+  font-style: italic;
+}
+.popup-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  font-size: 14px;
+  color: var(--dim);
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+}
+.popup-close:hover { background: rgba(196,181,253,0.1); color: var(--lavender); }
+
+/* ── shooting star ── */
+.shoot-trail {
+  position: fixed;
+  height: 1px;
+  border-radius: 1px;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: left center;
+}
+
+/* ── signature ── */
+#sig {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom, 14px));
+  right: 20px;
+  z-index: 3;
+  text-align: right;
+  pointer-events: none;
+  user-select: none;
+}
+#sig p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  color: var(--dim);
+  font-style: italic;
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint { animation: none; opacity: 0.5; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="sky"></canvas>
+
+<div id="title">
+  <p class="eyebrow">somewhere in this universe</p>
+  <h1>every star<br>is <em>yours,</em> Haya</h1>
+  <p class="hint">touch any star to read it</p>
+</div>
+
+<div id="counter"><span>you've found <strong id="found-n">0</strong> of <strong>20</strong> stars</span></div>
+
+<div id="popup" role="dialog" aria-modal="true" aria-label="Star message">
+  <div id="popup-inner">
+    <button class="popup-close" id="popup-close" aria-label="Close">✕</button>
+    <span class="popup-symbol" id="popup-symbol"></span>
+    <p class="popup-text" id="popup-text"></p>
+  </div>
+</div>
+
+<div id="sig">
+  <p>made with love</p>
+  <p>just for you ✦</p>
+</div>
+
+<script>
+const NOTES = [
+  { symbol: "✦", text: "Your laugh is the kind that makes everyone in the room smile without even knowing why." },
+  { symbol: "♡", text: "The way you say things — quietly, honestly — makes me want to listen to every single word." },
+  { symbol: "✿", text: "You have this warmth that doesn't try to be anything. It just is. And it's a lot." },
+  { symbol: "◇", text: "Talking to you feels easy. And easy is rare. And rare is something I want to hold onto." },
+  { symbol: "✧", text: "I thought about how to say this a hundred times. A whole universe felt about right." },
+  { symbol: "♡", text: "You make ordinary moments feel like they're worth keeping." },
+  { symbol: "✦", text: "Honestly? I think about you a lot. Like, an unreasonable amount. I'm okay with it." },
+  { symbol: "✿", text: "Every good thing I wanted to say to you — I tucked one here, in each star." },
+  { symbol: "◇", text: "You are, without question, the most interesting person I've thought about this week. And last week. And probably next week too." },
+  { symbol: "✧", text: "This star has been waiting for you. They all have." },
+  { symbol: "♡", text: "I like who I am when I'm around you. That's not a small thing at all." },
+  { symbol: "✦", text: "There's something about the way you carry yourself that I genuinely can't stop noticing." },
+  { symbol: "✿", text: "Haya — quietly beautiful. Kind of like the name itself." },
+  { symbol: "◇", text: "You have this energy I can't quite put words to. Good, though. Really, really good." },
+  { symbol: "✧", text: "If I could give you anything, it would be a sky full of moments that feel as good as this one." },
+  { symbol: "♡", text: "I keep finding reasons to want to talk to you. I'm starting to think it's not accidental." },
+  { symbol: "✦", text: "You deserve every star you touch — and probably the ones you haven't touched yet too." },
+  { symbol: "✿", text: "I built this universe and put you at the centre of it. That felt like the only honest thing to do." },
+  { symbol: "◇", text: "You are someone's favourite thought. I'll let you guess whose." },
+  { symbol: "✧", text: "Thank you for existing, Haya. I mean that more than I know how to say." },
+];
+
+const canvas = document.getElementById('sky');
+const ctx    = canvas.getContext('2d');
+let W, H, stars = [];
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  buildStars();
+}
+
+function buildStars() {
+  stars = [];
+  const count = Math.min(Math.floor((W * H) / 3200), 320);
+  for (let i = 0; i < count; i++) {
+    const hasNote = i < NOTES.length;
+    stars.push({
+      x:      rand(40, W - 40),
+      y:      rand(40, H - 40),
+      r:      hasNote ? rand(2.6, 4.0) : rand(0.4, 1.6),
+      alpha:  rand(0.35, 1),
+      speed:  rand(0.003, 0.009),
+      phase:  rand(0, Math.PI * 2),
+      note:   hasNote ? NOTES[i] : null,
+      read:   false,
+      hovered: false,
+      glow:   0,
+      glowR:  0,
+    });
+  }
+}
+
+/* ── draw ── */
+let t = 0;
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  /* layered nebula */
+  const paints = [
+    [W*0.25, H*0.3,  W*0.6,  'rgba(90,40,180,0.055)'],
+    [W*0.72, H*0.6,  W*0.45, 'rgba(180,60,120,0.04)'],
+    [W*0.5,  H*0.85, W*0.35, 'rgba(60,30,140,0.035)'],
+    [W*0.1,  H*0.75, W*0.3,  'rgba(120,80,220,0.03)'],
+  ];
+  for (const [cx, cy, r, col] of paints) {
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, col);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  t += 0.5;
+
+  for (const s of stars) {
+    const flicker = 0.6 + 0.4 * Math.sin(t * s.speed * 60 + s.phase);
+    const a = s.alpha * flicker;
+
+    const targetGlow = s.hovered ? 1 : 0;
+    s.glow  += (targetGlow - s.glow)  * 0.1;
+    s.glowR += (targetGlow - s.glowR) * 0.07;
+
+    ctx.save();
+
+    if (s.note && s.glow > 0.02) {
+      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 10);
+      grd.addColorStop(0, `rgba(196,181,253,${0.28 * s.glow})`);
+      grd.addColorStop(0.4, `rgba(249,168,212,${0.1 * s.glow})`);
+      grd.addColorStop(1, 'transparent');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * 10, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    /* shadow glow */
+    if (s.note) {
+      ctx.shadowBlur = 5 + s.glow * 14;
+      ctx.shadowColor = s.read
+        ? `rgba(249,168,212,${0.4 + s.glow*0.3})`
+        : `rgba(196,181,253,${0.5 + s.glow*0.4})`;
+    }
+
+    ctx.globalAlpha = a;
+
+    /* body */
+    if (s.note) {
+      const col = s.read
+        ? `rgba(249,${140 + s.glow*28},${180 + s.glow*20},1)`
+        : `rgba(${196 + s.glow*18},${181 + s.glow*18},253,1)`;
+      ctx.fillStyle = col;
+    } else {
+      ctx.fillStyle = 'rgba(220,216,255,0.85)';
+    }
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r + s.glowR * 1.8, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    /* 4-point sparkle arms on note stars */
+    if (s.note) {
+      ctx.save();
+      const armA = a * (0.35 + s.glow * 0.45);
+      ctx.globalAlpha = armA;
+      ctx.strokeStyle = s.read ? 'rgba(249,168,212,0.8)' : 'rgba(196,181,253,0.8)';
+      ctx.lineWidth = 0.6;
+      const arm = s.r * (1.8 + s.glowR * 2.5);
+      const armShort = arm * 0.55;
+      ctx.beginPath();
+      ctx.moveTo(s.x - arm, s.y);      ctx.lineTo(s.x + arm, s.y);
+      ctx.moveTo(s.x, s.y - arm);      ctx.lineTo(s.x, s.y + arm);
+      ctx.moveTo(s.x - armShort, s.y - armShort); ctx.lineTo(s.x + armShort, s.y + armShort);
+      ctx.moveTo(s.x + armShort, s.y - armShort); ctx.lineTo(s.x - armShort, s.y + armShort);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
+/* ── popup ── */
+const popup    = document.getElementById('popup');
+const popupTxt = document.getElementById('popup-text');
+const popupSym = document.getElementById('popup-symbol');
+const closeBtn = document.getElementById('popup-close');
+const counter  = document.getElementById('counter');
+const foundN   = document.getElementById('found-n');
+const titleEl  = document.getElementById('title');
+let foundCount = 0;
+let firstOpen  = false;
+
+function hitTest(px, py) {
+  for (const s of stars) {
+    if (!s.note) continue;
+    if (Math.hypot(px - s.x, py - s.y) < Math.max(s.r + 10, 16)) return s;
+  }
+  return null;
+}
+
+function openNote(s, px, py) {
+  if (!s.note) return;
+  if (!s.read) { s.read = true; foundCount++; foundN.textContent = foundCount; }
+
+  popupSym.textContent = s.note.symbol;
+  popupTxt.textContent = s.note.text;
+
+  if (!firstOpen) {
+    firstOpen = true;
+    titleEl.style.opacity = '0.08';
+    counter.classList.add('show');
+  }
+
+  /* position */
+  popup.classList.remove('visible');
+  popup.style.left = '0px';
+  popup.style.top  = '0px';
+
+  const isMobile = window.innerWidth <= 600;
+  if (!isMobile) {
+    requestAnimationFrame(() => {
+      const pw = popup.offsetWidth  || 280;
+      const ph = popup.offsetHeight || 130;
+      let lx = px + 20;
+      let ly = py - ph / 2;
+      if (lx + pw > W - 16) lx = px - pw - 20;
+      if (lx < 12) lx = 12;
+      if (ly < 16) ly = 16;
+      if (ly + ph > H - 16) ly = H - ph - 16;
+      popup.style.left = lx + 'px';
+      popup.style.top  = ly + 'px';
+      popup.classList.add('visible');
+    });
+  } else {
+    popup.classList.add('visible');
+  }
+}
+
+function closeNote() { popup.classList.remove('visible'); }
+
+function getPos(e) {
+  const src = e.changedTouches ? e.changedTouches[0] : e;
+  return { x: src.clientX, y: src.clientY };
+}
+
+canvas.addEventListener('mousemove', e => {
+  const { x, y } = getPos(e);
+  let found = null;
+  for (const s of stars) {
+    s.hovered = false;
+    if (!s.note) continue;
+    if (Math.hypot(x - s.x, y - s.y) < Math.max(s.r + 10, 16)) found = s;
+  }
+  if (found) { found.hovered = true; canvas.style.cursor = 'pointer'; }
+  else        { canvas.style.cursor = 'default'; }
+});
+
+canvas.addEventListener('click', e => {
+  const { x, y } = getPos(e);
+  const s = hitTest(x, y);
+  if (s) openNote(s, x, y); else closeNote();
+});
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const { x, y } = getPos(e);
+  const s = hitTest(x, y);
+  if (s) openNote(s, x, y); else closeNote();
+}, { passive: false });
+
+closeBtn.addEventListener('click',   e => { e.stopPropagation(); closeNote(); });
+closeBtn.addEventListener('touchend',e => { e.preventDefault(); e.stopPropagation(); closeNote(); });
+popup.addEventListener('click', e => e.stopPropagation());
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNote(); });
+
+/* ── shooting stars with tails ── */
+function shoot() {
+  const el = document.createElement('div');
+  el.className = 'shoot-trail';
+  const sx    = rand(-20, W * 0.8);
+  const sy    = rand(-10, H * 0.45);
+  const angle = rand(18, 38);
+  const len   = rand(90, 220);
+  const dur   = rand(500, 800);
+  el.style.cssText = `
+    left:${sx}px; top:${sy}px;
+    width:${len}px;
+    background: linear-gradient(90deg, rgba(232,228,255,0) 0%, rgba(232,228,255,0.9) 100%);
+    transform: rotate(${angle}deg);
+  `;
+  document.body.appendChild(el);
+  el.animate([
+    { opacity: 0,   transform: `rotate(${angle}deg) translateX(-${len*0.3}px)` },
+    { opacity: 0.9, transform: `rotate(${angle}deg) translateX(0px)`,   offset: 0.15 },
+    { opacity: 0,   transform: `rotate(${angle}deg) translateX(${len*0.7}px)` }
+  ], { duration: dur, easing: 'ease-in', fill: 'forwards' }).onfinish = () => el.remove();
+}
+
+function scheduleShoot() {
+  shoot();
+  setTimeout(scheduleShoot, rand(2500, 5500));
+}
+
+resize();
+window.addEventListener('resize', resize);
+draw();
+setTimeout(scheduleShoot, 1400);
+setTimeout(scheduleShoot, 3200);
+</script>
+</body>
+</html>
