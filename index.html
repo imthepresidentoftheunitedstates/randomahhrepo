@@ -33,10 +33,8 @@ body{
   overflow-x:hidden;
 }
 
-/* ─── fixed canvas (ambient stars + nebula) ─── */
 #sky{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* ─── parallax nebula layer (CSS, behind stars) ─── */
 #nebula{
   position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
@@ -47,7 +45,6 @@ body{
   will-change:transform;
 }
 
-/* ─── scrollable world ─── */
 #world{position:absolute;inset:0;z-index:1}
 
 /* ─── hero ─── */
@@ -67,10 +64,11 @@ body{
 #hero h1{
   font-family:'Cormorant Garamond',serif;
   font-weight:300;
-  font-size:clamp(46px,12vw,96px);
+  font-size:clamp(38px,11vw,96px);
   color:var(--star);
   line-height:1.05;letter-spacing:-.025em;
   text-align:center;
+  padding:0 16px;
   opacity:0;animation:fadeUp 1s .45s ease forwards;
 }
 #hero h1 em{
@@ -79,18 +77,19 @@ body{
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .hint{
-  margin-top:32px;font-size:11px;
+  margin-top:28px;font-size:10px;
   letter-spacing:.2em;text-transform:uppercase;
   color:var(--dim);
+  padding:0 20px;text-align:center;
   opacity:0;animation:fadeUp .8s .75s ease forwards, softPulse 3s 1.6s ease-in-out infinite;
 }
 .scroll-cue{
-  margin-top:36px;
+  margin-top:32px;
   opacity:0;animation:fadeUp .7s 1s ease forwards;
   display:flex;flex-direction:column;align-items:center;gap:6px;
 }
 .scroll-line{
-  width:1px;height:32px;
+  width:1px;height:28px;
   background:linear-gradient(to bottom,transparent,rgba(196,181,253,.4),transparent);
   animation:scrollLine 2s 1.5s ease-in-out infinite;
 }
@@ -102,10 +101,10 @@ body{
 
 /* ─── counter pill ─── */
 #counter{
-  position:fixed;top:20px;left:50%;
+  position:fixed;top:16px;left:50%;
   transform:translateX(-50%);
   z-index:10;
-  background:rgba(3,2,14,.75);
+  background:rgba(3,2,14,.8);
   border:.5px solid rgba(196,181,253,.2);
   border-radius:100px;
   padding:7px 18px;
@@ -115,16 +114,18 @@ body{
 }
 #counter.show{opacity:1}
 #counter span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dimm)}
-#counter strong{color:var(--lav);font-weight:500}
+#counter .found-num{color:var(--blush);font-weight:500}
+#counter .total-num{color:var(--lav);font-weight:500}
 
 /* ─── note star wrapper ─── */
 .note-star{
   position:absolute;
-  width:64px;height:64px;
+  /* larger tap target on mobile without visual change */
+  width:72px;height:72px;
   transform:translate(-50%,-50%);
   cursor:pointer;z-index:3;
-  /* entrance hidden — JS reveals with stagger */
   opacity:0;
+  touch-action:none; /* prevent scroll hijack on the element itself */
 }
 .note-star.entered{
   animation:starEnter .6s ease forwards;
@@ -140,17 +141,15 @@ body{
   display:flex;align-items:center;justify-content:center;
   transition:transform .35s cubic-bezier(.34,1.56,.64,1);
 }
-.note-star:hover .ns-inner,
-.note-star:active .ns-inner{transform:scale(1.3)}
+.note-star:hover .ns-inner{transform:scale(1.3)}
+.note-star:active .ns-inner{transform:scale(1.15)}
 
-/* layered glow rings */
 .ns-glow1,.ns-glow2{
   position:absolute;inset:0;border-radius:50%;
-  animation:glowRing1 3s ease-in-out infinite;
 }
 .ns-glow1{
   background:radial-gradient(circle,rgba(196,181,253,.18) 0%,transparent 68%);
-  animation-duration:3.2s;
+  animation:glowRing1 3.2s ease-in-out infinite;
 }
 .ns-glow2{
   background:radial-gradient(circle,rgba(196,181,253,.09) 0%,transparent 80%);
@@ -160,7 +159,6 @@ body{
 @keyframes glowRing1{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
 @keyframes glowRing2{0%,100%{opacity:.4;transform:scale(1.5)}50%{opacity:.85;transform:scale(1.75)}}
 
-/* pulsing orbit ring */
 .ns-orbit{
   position:absolute;
   width:44px;height:44px;
@@ -174,33 +172,52 @@ body{
   100%{transform:scale(1.55);opacity:0}
 }
 
-/* star SVG */
 .ns-svg{
   width:28px;height:28px;
   position:relative;z-index:1;
   overflow:visible;
   filter:drop-shadow(0 0 6px rgba(196,181,253,.9)) drop-shadow(0 0 14px rgba(196,181,253,.4));
   transition:filter .3s;
+  pointer-events:none;
 }
 .note-star:hover .ns-svg{
   filter:drop-shadow(0 0 10px rgba(196,181,253,1)) drop-shadow(0 0 24px rgba(196,181,253,.65)) drop-shadow(0 0 40px rgba(249,168,212,.35));
 }
 
-/* read state → blush */
+/* ─── READ STATE ─── */
 .note-star.read .ns-glow1{
-  background:radial-gradient(circle,rgba(249,168,212,.22) 0%,transparent 68%);
+  background:radial-gradient(circle,rgba(249,168,212,.32) 0%,transparent 68%);
 }
 .note-star.read .ns-glow2{
-  background:radial-gradient(circle,rgba(249,168,212,.11) 0%,transparent 80%);
+  background:radial-gradient(circle,rgba(249,168,212,.18) 0%,transparent 80%);
 }
-.note-star.read .ns-orbit{border-color:rgba(249,168,212,.28)}
+.note-star.read .ns-orbit{
+  border-color:rgba(249,168,212,.5);
+  border-width:1.2px;
+}
 .note-star.read .ns-svg{
-  filter:drop-shadow(0 0 6px rgba(249,168,212,.95)) drop-shadow(0 0 16px rgba(249,168,212,.45));
+  filter:drop-shadow(0 0 8px rgba(249,168,212,1)) drop-shadow(0 0 20px rgba(249,168,212,.6)) drop-shadow(0 0 36px rgba(253,164,175,.35));
+  width:32px;height:32px;
 }
-.note-star.read .star-fill{fill:#fda4af}
 .note-star.read:hover .ns-svg{
-  filter:drop-shadow(0 0 10px rgba(249,168,212,1)) drop-shadow(0 0 26px rgba(249,168,212,.7));
+  filter:drop-shadow(0 0 12px rgba(249,168,212,1)) drop-shadow(0 0 30px rgba(249,168,212,.8));
 }
+/* checkmark badge */
+.ns-badge{
+  position:absolute;
+  top:-2px;right:-2px;
+  width:15px;height:15px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#fda4af,#f9a8d4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;color:#fff;font-weight:700;
+  z-index:5;
+  box-shadow:0 0 6px rgba(253,164,175,.7);
+  opacity:0;transform:scale(0);
+  transition:opacity .3s .1s, transform .3s .1s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;
+}
+.note-star.read .ns-badge{opacity:1;transform:scale(1)}
 
 /* burst particle */
 .burst{
@@ -213,13 +230,13 @@ body{
   to{transform:translate(var(--tx),var(--ty)) scale(1);opacity:0}
 }
 
-/* ─── BOTTOM SHEET (mobile) ─── */
+/* ─── BOTTOM SHEET (mobile/touch) ─── */
 #backdrop{
   position:fixed;inset:0;
-  background:rgba(2,2,10,.6);
+  background:rgba(2,2,10,.65);
   z-index:90;opacity:0;pointer-events:none;
   transition:opacity .35s;
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
 #backdrop.show{opacity:1;pointer-events:auto}
 
@@ -232,13 +249,12 @@ body{
 #sheet.open{transform:translateY(0)}
 
 #sheet-inner{
-  background:linear-gradient(160deg,#0e0c22 0%,#080617 100%);
-  border-top:.5px solid rgba(196,181,253,.18);
+  background:linear-gradient(160deg,#0f0d24 0%,#090718 100%);
+  border-top:.5px solid rgba(196,181,253,.2);
   border-radius:28px 28px 0 0;
-  padding:0 28px calc(36px + env(safe-area-inset-bottom,0px));
+  padding:0 24px calc(40px + env(safe-area-inset-bottom,0px)) 24px;
   position:relative;overflow:hidden;
 }
-/* top shine line */
 #sheet-inner::after{
   content:'';position:absolute;
   top:0;left:10%;right:10%;height:1px;
@@ -249,63 +265,79 @@ body{
   width:38px;height:4px;
   background:rgba(196,181,253,.22);
   border-radius:2px;
-  margin:16px auto 26px;
+  margin:14px auto 20px;
 }
+/* close button — fixed top-right */
+#sheet-close{
+  position:absolute;
+  top:14px;right:18px;
+  width:32px;height:32px;
+  background:rgba(196,181,253,.08);
+  border:.5px solid rgba(196,181,253,.18);
+  border-radius:50%;
+  color:var(--dimm);font-size:13px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;
+  z-index:2;
+  /* large touch target */
+  -webkit-tap-highlight-color:transparent;
+}
+#sheet-close:active{background:rgba(196,181,253,.22);color:var(--lav)}
+
 .sheet-star-label{
   display:flex;align-items:center;gap:10px;
-  margin-bottom:16px;
+  margin-bottom:14px;
 }
-.sheet-star-icon{font-size:20px;opacity:.55}
+.sheet-star-icon{font-size:18px;opacity:.55}
 .sheet-star-num{
   font-size:10px;letter-spacing:.22em;text-transform:uppercase;
   color:var(--dimm);
 }
 #sheet-txt{
   font-family:'Cormorant Garamond',serif;
-  font-size:clamp(22px,6vw,26px);
+  font-size:clamp(20px,5.5vw,26px);
   font-weight:300;font-style:italic;
-  color:var(--star);line-height:1.58;
+  color:var(--star);line-height:1.6;
 }
-.sheet-footer{
-  margin-top:22px;
-  display:flex;align-items:center;justify-content:space-between;
+/* progress dots grid */
+.sheet-footer{margin-top:24px}
+.sheet-dots{
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:6px;
+  width:100%;
 }
-.sheet-dots{display:flex;gap:5px}
 .sheet-dot{
-  width:5px;height:5px;border-radius:50%;
-  background:rgba(196,181,253,.22);
-  transition:background .3s;
+  width:100%;aspect-ratio:1;
+  border-radius:50%;
+  background:rgba(196,181,253,.2);
+  transition:background .3s, transform .2s;
 }
-.sheet-dot.lit{background:var(--lav)}
-#sheet-close{
-  width:34px;height:34px;
-  background:rgba(196,181,253,.08);
-  border:.5px solid rgba(196,181,253,.15);
-  border-radius:50%;color:var(--dimm);font-size:13px;
-  cursor:pointer;border:none;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .15s,color .15s;
+.sheet-dot.lit{
+  background:var(--rose);
+  transform:scale(1.15);
+  box-shadow:0 0 4px rgba(253,164,175,.5);
 }
-#sheet-close:hover,#sheet-close:active{background:rgba(196,181,253,.18);color:var(--lav)}
 
 /* ─── DESKTOP POPUP ─── */
 #popup{
   position:fixed;z-index:100;
   width:min(300px,80vw);
   pointer-events:none;opacity:0;
-  transition:opacity .28s cubic-bezier(.22,.68,0,1.15),
-             transform .28s cubic-bezier(.22,.68,0,1.15);
-  transform:scale(.9) translateY(10px);
+  transition:opacity .25s cubic-bezier(.22,.68,0,1.15),
+             transform .25s cubic-bezier(.22,.68,0,1.15);
+  transform:scale(.92) translateY(8px);
 }
 #popup.open{opacity:1;pointer-events:auto;transform:scale(1) translateY(0)}
 #popup-inner{
-  background:linear-gradient(145deg,rgba(10,7,28,.93) 0%,rgba(6,4,18,.97) 100%);
-  border:.5px solid rgba(196,181,253,.22);
+  background:linear-gradient(145deg,rgba(10,7,28,.96) 0%,rgba(6,4,18,.99) 100%);
+  border:.5px solid rgba(196,181,253,.24);
   border-radius:22px;
   padding:26px 28px 22px;
   position:relative;overflow:hidden;
   backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-  box-shadow:0 20px 60px rgba(0,0,0,.5), 0 0 0 .5px rgba(196,181,253,.08) inset;
+  box-shadow:0 20px 60px rgba(0,0,0,.55), 0 0 0 .5px rgba(196,181,253,.08) inset;
 }
 #popup-inner::after{
   content:'';position:absolute;
@@ -331,16 +363,16 @@ body{
 }
 #popup-close:hover{background:rgba(196,181,253,.12);color:var(--lav)}
 
-/* ─── shooting stars ─── */
+/* shooting stars */
 .shoot{
   position:fixed;height:1.5px;border-radius:2px;
   pointer-events:none;z-index:1;transform-origin:left center;
 }
 
-/* ─── sig ─── */
+/* sig */
 #sig{
   position:fixed;
-  bottom:max(20px,env(safe-area-inset-bottom,16px));right:22px;
+  bottom:max(20px,env(safe-area-inset-bottom,16px));right:20px;
   z-index:5;pointer-events:none;user-select:none;text-align:right;
 }
 #sig p{
@@ -349,8 +381,14 @@ body{
   color:var(--dim);letter-spacing:.05em;line-height:1.9;
 }
 
+@media(max-width:380px){
+  #hero h1{font-size:34px}
+  .hint{font-size:9px}
+  #sheet-txt{font-size:18px}
+}
+
 @media(prefers-reduced-motion:reduce){
-  *{animation-duration:.001ms!important}
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
 }
 </style>
 </head>
@@ -370,16 +408,14 @@ body{
   </div>
 </div>
 
-<div id="counter"><span>found <strong id="found-n">0</strong> of <strong>20</strong></span></div>
+<div id="counter"><span>found <strong class="found-num" id="found-n">0</strong> of <strong class="total-num">20</strong></span></div>
 
 <!-- mobile bottom sheet -->
 <div id="backdrop"></div>
 <div id="sheet" role="dialog" aria-modal="true" aria-label="Star message">
   <div id="sheet-inner">
     <div class="sheet-handle"></div>
-    <div id="sheet-close-wrap">
-      <button id="sheet-close" aria-label="Close">✕</button>
-    </div>
+    <button id="sheet-close" aria-label="Close">✕</button>
     <div class="sheet-star-label">
       <span class="sheet-star-icon" id="sheet-sym">✦</span>
       <span class="sheet-star-num" id="sheet-num">star 1</span>
@@ -430,9 +466,15 @@ const NOTES=[
   {sym:"✧",txt:"Thank you for existing, Haya. I mean that more than I know how to say."},
 ];
 
+/* ─── persistent read state (survives resize) ─── */
+const readState = new Set();
+
 /* ─── utils ─── */
 const $=id=>document.getElementById(id);
 const rand=(a,b)=>a+Math.random()*(b-a);
+
+/* detect touch-primary device once at load */
+const IS_TOUCH = window.matchMedia('(pointer:coarse)').matches;
 
 /* ─── ambient canvas ─── */
 const canvas=$('sky'), ctx=canvas.getContext('2d');
@@ -450,7 +492,7 @@ function resizeCanvas(){
     x:rand(0,W),y:rand(0,H),
     r:rand(.25,1.3),a:rand(.15,.9),
     sp:rand(.003,.01),ph:rand(0,Math.PI*2),
-    col:Math.random()<.15?[249,168,212]:[196,181,253] // mostly lav, few blush
+    col:Math.random()<.15?[249,168,212]:[196,181,253]
   });
 }
 
@@ -470,7 +512,6 @@ function drawCanvas(){
 
 /* ─── star SVG factory ─── */
 function starPath(R){
-  /* classic 4-point: two pairs of points at R and inner=R*0.22 */
   const ri=R*0.22, pts=[];
   for(let i=0;i<8;i++){
     const ang=(i*Math.PI/4)-Math.PI/2;
@@ -483,15 +524,17 @@ function starPath(R){
 function makeStar(read){
   const R=11, d=starPath(R);
   const fill=read?'#fda4af':'#d4c5fe';
+  const stopTop=read?'#ffcdd8':'#ffffff';
+  const gid='sg'+(read?'r':'u');
   return `<svg class="ns-svg" viewBox="-20 -20 40 40" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <radialGradient id="sg" cx="35%" cy="30%" r="65%">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity=".9"/>
+      <radialGradient id="${gid}" cx="35%" cy="30%" r="65%">
+        <stop offset="0%" stop-color="${stopTop}" stop-opacity=".95"/>
         <stop offset="100%" stop-color="${fill}" stop-opacity="1"/>
       </radialGradient>
     </defs>
-    <path class="star-fill" d="${d}" fill="url(#sg)" opacity=".95"/>
-    <path d="${d}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".6"/>
+    <path class="star-fill" d="${d}" fill="url(#${gid})" opacity=".95"/>
+    <path d="${d}" fill="none" stroke="${read?'rgba(253,164,175,.5)':'rgba(255,255,255,.35)'}" stroke-width="${read?.9:.6}"/>
   </svg>`;
 }
 
@@ -507,12 +550,11 @@ function placeNoteStars(){
   const worldH=vh*3.2;
   document.body.style.minHeight=worldH+'px';
 
-  /* zone-based placement: divide into cols×rows grid, one star per cell */
   const cols=Math.max(2,Math.min(4,Math.floor(vw/140)));
   const rows=Math.ceil(NOTES.length/cols);
   const cellW=vw/cols;
   const cellH=(worldH-vh*.3)/rows;
-  const pad=38;
+  const pad=42;
 
   const positions=[];
   for(let r=0;r<rows;r++){
@@ -524,7 +566,6 @@ function placeNoteStars(){
       });
     }
   }
-  /* mild shuffle — keeps density even but not grid-rigid */
   for(let i=positions.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [positions[i],positions[j]]=[positions[j],positions[i]];
@@ -532,39 +573,76 @@ function placeNoteStars(){
 
   NOTES.forEach((note,i)=>{
     const {x,y}=positions[i];
+    const isRead=readState.has(i);
     const el=document.createElement('div');
-    el.className='note-star';
+    el.className='note-star'+(isRead?' read':'');
     el.style.left=x+'px'; el.style.top=y+'px';
-    /* staggered glow animation phase */
     el.innerHTML=`
       <div class="ns-inner">
         <div class="ns-glow2"></div>
         <div class="ns-glow1"></div>
         <div class="ns-orbit" style="animation-delay:${rand(0,3).toFixed(2)}s"></div>
-        ${makeStar(false)}
+        ${makeStar(isRead)}
+        <div class="ns-badge">✓</div>
       </div>`;
-    el._note=note; el._read=false; el._idx=i;
-    /* stagger entrance */
+    el._note=note; el._idx=i;
     setTimeout(()=>el.classList.add('entered'), 300+i*80);
     world.appendChild(el);
     noteEls.push(el);
-    el.addEventListener('click',()=>openNote(el));
-    el.addEventListener('touchend',e=>{e.preventDefault();openNote(el);},{passive:false});
+
+    if(IS_TOUCH){
+      /* ── TOUCH: only fire if the finger didn't scroll ── */
+      let touchStartX=0, touchStartY=0, touchMoved=false;
+      el.addEventListener('touchstart', e=>{
+        touchStartX=e.touches[0].clientX;
+        touchStartY=e.touches[0].clientY;
+        touchMoved=false;
+      },{passive:true});
+      el.addEventListener('touchmove', e=>{
+        const dx=Math.abs(e.touches[0].clientX-touchStartX);
+        const dy=Math.abs(e.touches[0].clientY-touchStartY);
+        if(dx>6||dy>6) touchMoved=true;
+      },{passive:true});
+      el.addEventListener('touchend', e=>{
+        if(!touchMoved){
+          e.preventDefault();
+          openNote(el);
+        }
+      },{passive:false});
+    } else {
+      /* ── DESKTOP: click + stopPropagation so world handler never fires ── */
+      el.addEventListener('click', e=>{
+        e.stopPropagation();
+        openNote(el);
+      });
+    }
+  });
+}
+
+/* ─── dots progress ─── */
+const dotsEl=$('sheet-dots');
+let dots=[];
+function buildDots(){
+  dotsEl.innerHTML='';
+  dots=NOTES.map((_,i)=>{
+    const d=document.createElement('div');
+    d.className='sheet-dot'+(readState.has(i)?' lit':'');
+    dotsEl.appendChild(d);
+    return d;
   });
 }
 
 /* ─── burst particles ─── */
-function burst(cx,cy,read){
-  const col=read?'rgba(253,164,175,':'rgba(196,181,253,';
-  for(let i=0;i<10;i++){
+function burst(cx,cy){
+  for(let i=0;i<12;i++){
     const p=document.createElement('div');
     p.className='burst';
     const ang=rand(0,Math.PI*2);
-    const dist=rand(24,52);
+    const dist=rand(24,58);
     const size=rand(2,5);
     p.style.cssText=`left:${cx}px;top:${cy}px;
       width:${size}px;height:${size}px;
-      background:${col+rand(.7,1)});
+      background:rgba(249,168,212,${rand(.7,1).toFixed(2)});
       --tx:${(Math.cos(ang)*dist).toFixed(1)}px;
       --ty:${(Math.sin(ang)*dist).toFixed(1)}px;
       animation-delay:${rand(0,.08).toFixed(3)}s;
@@ -574,18 +652,7 @@ function burst(cx,cy,read){
   }
 }
 
-/* ─── dots progress (mobile sheet) ─── */
-const dotsEl=$('sheet-dots');
-let dots=[];
-function buildDots(){
-  dotsEl.innerHTML='';
-  dots=NOTES.map(()=>{
-    const d=document.createElement('div');
-    d.className='sheet-dot'; dotsEl.appendChild(d); return d;
-  });
-}
-
-/* ─── open/close note ─── */
+/* ─── open / close ─── */
 const backdrop=$('backdrop');
 const sheet=$('sheet');
 const sheetSym=$('sheet-sym');
@@ -600,33 +667,33 @@ const popupClose=$('popup-close');
 const counter=$('counter');
 const foundNEl=$('found-n');
 const hero=$('hero');
-let foundCount=0,firstOpen=false;
-
-const isMob=()=>window.innerWidth<=680;
+let firstOpen=false;
 
 function openNote(el){
-  const wasRead=el._read;
-  if(!el._read){
-    el._read=true;
+  const idx=el._idx;
+  const wasRead=readState.has(idx);
+
+  if(!wasRead){
+    readState.add(idx);
     el.classList.add('read');
-    /* swap SVG fill to blush */
-    const svg=el.querySelector('.ns-svg');
-    if(svg) svg.outerHTML=makeStar(true);
-    foundCount++;
-    foundNEl.textContent=foundCount;
-    if(dots[el._idx]) dots[el._idx].classList.add('lit');
+    const oldSvg=el.querySelector('.ns-svg');
+    if(oldSvg){
+      const tmp=document.createElement('div');
+      tmp.innerHTML=makeStar(true);
+      oldSvg.replaceWith(tmp.firstElementChild);
+    }
+    foundNEl.textContent=Math.min(readState.size, NOTES.length);
+    if(dots[idx]) dots[idx].classList.add('lit');
+    const rect=el.getBoundingClientRect();
+    burst(rect.left+rect.width/2, rect.top+rect.height/2);
   }
+
   if(!firstOpen){ firstOpen=true; counter.classList.add('show'); }
 
-  /* burst effect */
-  const rect=el.getBoundingClientRect();
-  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  if(!wasRead) burst(cx,cy,false);
-
   const {sym,txt}=el._note;
-  const numLabel='star '+(el._idx+1);
+  const numLabel='star '+(idx+1);
 
-  if(isMob()){
+  if(IS_TOUCH){
     sheetSym.textContent=sym;
     sheetNum.textContent=numLabel;
     sheetTxt.textContent=txt;
@@ -636,10 +703,12 @@ function openNote(el){
     popupSym.textContent=sym;
     popupNum.textContent=numLabel;
     popupTxt.textContent=txt;
-    popup.style.cssText='left:0;top:0';
+    /* reset position before measuring */
+    popup.style.left='0'; popup.style.top='0';
     popup.classList.add('open');
     requestAnimationFrame(()=>{
       const pw=popup.offsetWidth||300, ph=popup.offsetHeight||150;
+      const rect=el.getBoundingClientRect();
       let lx=rect.right+18, ly=rect.top+rect.height/2-ph/2;
       if(lx+pw>W-12) lx=rect.left-pw-18;
       if(lx<10) lx=10;
@@ -656,12 +725,19 @@ function closeAll(){
   popup.classList.remove('open');
 }
 
-sheetClose.addEventListener('click',closeAll);
-sheetClose.addEventListener('touchend',e=>{e.preventDefault();closeAll();});
-backdrop.addEventListener('click',closeAll);
-popupClose.addEventListener('click',closeAll);
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
-world.addEventListener('click',e=>{if(!e.target.closest('.note-star'))closeAll();});
+/* sheet close — both click and touch */
+sheetClose.addEventListener('click', closeAll);
+sheetClose.addEventListener('touchend', e=>{ e.preventDefault(); closeAll(); },{passive:false});
+
+/* backdrop tap to close */
+backdrop.addEventListener('click', closeAll);
+backdrop.addEventListener('touchend', e=>{ e.preventDefault(); closeAll(); },{passive:false});
+
+/* desktop: click outside popup closes it; stopPropagation on popup itself */
+popupClose.addEventListener('click', closeAll);
+popup.addEventListener('click', e=>e.stopPropagation());
+document.addEventListener('click', ()=>{ if(popup.classList.contains('open')) closeAll(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAll(); });
 
 /* ─── scroll: hero parallax fade ─── */
 window.addEventListener('scroll',()=>{
@@ -669,7 +745,6 @@ window.addEventListener('scroll',()=>{
   const p=Math.min(sy/(vh*.28),1);
   hero.style.opacity=(1-p*1.5>0?1-p*1.5:0).toString();
   hero.style.transform=`translateY(${-sy*.18}px)`;
-  /* subtle nebula parallax */
   $('nebula').style.transform=`translateY(${sy*.06}px)`;
 },{passive:true});
 
@@ -699,8 +774,13 @@ setTimeout(sched,1000); setTimeout(sched,2600); setTimeout(sched,4200);
 let resizeTimer;
 window.addEventListener('resize',()=>{
   clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{resizeCanvas();placeNoteStars();closeAll();},200);
-});
+  resizeTimer=setTimeout(()=>{
+    resizeCanvas();
+    buildDots();
+    placeNoteStars();
+    closeAll();
+  },200);
+},{passive:true});
 </script>
 </body>
 </html>
